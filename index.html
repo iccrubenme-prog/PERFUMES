@@ -27,8 +27,8 @@ header p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
 .lbl{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .field{display:grid;gap:6px;min-width:0}
 .field input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--panel2);border-radius:12px;padding:4px}
-.seg button{border:0;background:transparent;border-radius:9px;padding:10px 8px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--panel2);border-radius:12px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px 4px;font-size:.86rem;line-height:1.2;font-weight:700;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink)}
 .btn{border:0;border-radius:999px;padding:13px 20px;font-weight:700;background:var(--gold);color:var(--gold-ink);cursor:pointer;width:100%}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
@@ -94,11 +94,16 @@ header p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
     <div class="field"><span class="lbl">Momento</span>
       <div class="seg" role="group" aria-label="Tipo de tarjeta">
         <button type="button" id="tPago" data-t="pago" aria-pressed="true">Pago recibido</button>
+        <button type="button" id="tCamino" data-t="camino" aria-pressed="false">Va en camino</button>
         <button type="button" id="tEntrega" data-t="entrega" aria-pressed="false">Entregado</button>
       </div></div>
     <div class="field"><label class="lbl" for="nombre">Nombre del cliente</label><input id="nombre" maxlength="40" value="Ana Lucía" placeholder="Se llena con el pedido"></div>
     <div class="field"><label class="lbl" for="perfume">Perfume</label><input id="perfume" list="perfumes" maxlength="90" value="CH Good Girl EDP 80 ml" placeholder="Se llena con el pedido"><datalist id="perfumes"></datalist></div>
-    <div class="field"><label class="lbl" for="fecha">Fecha</label><input id="fecha" type="date"></div>
+    <div class="field"><label class="lbl" for="fecha" id="fechaLbl">Fecha</label><input id="fecha" type="date"></div>
+    <div class="field" id="lotesBox" hidden><span class="lbl">Número de lote y fabricación</span>
+      <div id="lotes" style="display:grid;gap:10px"></div>
+      <p class="hint">Copia el lote de la caja, consúltalo en <a href="https://www.checkfresh.com/" target="_blank" rel="noopener" style="color:var(--gold)">CheckFresh.com</a> y escribe la fecha de fabricación que te dé (ej. 03/2026).</p></div>
+    <div class="field" id="horarioBox" hidden><label class="lbl" for="horario">Horario de entrega</label><input id="horario" maxlength="40" value="4:00 a 6:00 pm" placeholder="Ej. 4:00 a 6:00 pm"></div>
     <button type="button" class="btn wa" id="enviar">Enviar por WhatsApp</button>
     <button type="button" class="btn ghost" id="bajar">Descargar imagen</button>
     <p class="hint" id="bajarHint">La imagen sale en 1080 × 1350, el tamaño ideal para WhatsApp.</p>
@@ -129,6 +134,11 @@ const $=s=>document.querySelector(s);
 const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 let tipo="pago";
+let LOTES=[{perfume:"",lote:"",fab:""}];
+function pintaLotes(){
+  $("#lotes").innerHTML=LOTES.map((l,i)=>`<div style="display:grid;gap:6px">${LOTES.length>1||l.perfume?`<span style="font-size:.8rem;color:var(--muted)">${esc(l.perfume||"Perfume")}</span>`:""}
+    <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:8px"><input data-i="${i}" data-k="lote" value="${esc(l.lote)}" placeholder="Lote (ej. 2K01)" aria-label="Número de lote"><input data-i="${i}" data-k="fab" value="${esc(l.fab)}" placeholder="Fabricación (03/2026)" aria-label="Fecha de fabricación"></div></div>`).join("");
+}
 $("#perfumes").innerHTML=NOMBRES.map(n=>`<option value="${esc(n)}">`).join("");
 const hoy=new Date(); $("#fecha").value=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,"0")}-${String(hoy.getDate()).padStart(2,"0")}`;
 
@@ -139,7 +149,9 @@ function datos(){
   const primero=(nombre.split(" ")[0]||"").replace(/^./,c=>c.toUpperCase());
   const [y,m,d]=($("#fecha").value||"").split("-").map(Number);
   const fecha=y?`${d} ${MESES[m-1]} ${y}`:"";
-  return {nombre,primero,perfume:$("#perfume").value.trim(),fecha,mesAnio:y?`${MESES[m-1]} ${y}`:""};
+  const DIAS=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const dia=y?`${DIAS[new Date(y,m-1,d).getDay()]} ${d} de ${["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][m-1]}`:"";
+  return {nombre,primero,perfume:$("#perfume").value.trim(),fecha,dia,horario:$("#horario").value.trim(),mesAnio:y?`${MESES[m-1]} ${y}`:""};
 }
 const glowPago="background:radial-gradient(640px 560px at 50% 30%,rgba(201,169,110,.20),transparent 70%),radial-gradient(500px 400px at 100% 100%,rgba(201,169,110,.08),transparent 70%)";
 const glowEnt="background:radial-gradient(760px 520px at 50% 62%,rgba(201,169,110,.18),transparent 70%),radial-gradient(500px 380px at 0% 0%,rgba(201,169,110,.08),transparent 70%)";
@@ -148,7 +160,7 @@ function tarjetaPago(x){
   return `<div class="card" id="card"><div class="glow" style="${glowPago}"></div>
   <div class="in" style="padding:62px 84px 56px;align-items:center;text-align:center">
     <div class="c-k" style="color:#A8A093;font-weight:400;letter-spacing:.34em;font-size:19px">Esencia Angelopolitana · Puebla</div>
-    <div style="margin-top:44px;width:262px;height:262px;border-radius:50%;border:1px solid rgba(201,169,110,.45);display:flex;align-items:center;justify-content:center">
+    <div style="margin-top:64px;width:262px;height:262px;border-radius:50%;border:1px solid rgba(201,169,110,.45);display:flex;align-items:center;justify-content:center">
       <span style="width:236px;height:236px;display:block">${LOGO.replace('<svg ','<svg width="236" height="236" ')}</span></div>
     <div class="c-k" style="margin-top:34px">Pago recibido${x.fecha?" · "+esc(x.fecha):""}</div>
     <h1 class="c-h fit" data-max="912" style="font-size:96px;margin-top:22px">Gracias, <i>${esc(x.primero||"cliente")}</i></h1>
@@ -156,7 +168,7 @@ function tarjetaPago(x){
     <p class="c-msg" style="margin-top:30px;max-width:860px">Recibimos tu pago${x.perfume?` de <b>${esc(x.perfume)}</b>`:""}. Ya ${plural(x.perfume)?"los":"lo"} estamos preparando para <b>entregárte${plural(x.perfume)?"los":"lo"} en tu domicilio</b>, y te confirmaremos por WhatsApp el día y horario de entrega.</p>
     <div class="c-badges" style="margin-top:34px"><span><b>✓</b>Original y sellado</span><span><b>✓</b>Con número de lote</span><span><b>✓</b>Entrega en Puebla</span></div>
     <p style="font-family:'PlayfairEA',serif;font-style:italic;font-size:34px;color:#E9DFC9;margin-top:36px">Que lo disfrutes mucho.<small style="display:block;font-family:'FigtreeEA',sans-serif;font-style:normal;font-size:19px;letter-spacing:.24em;text-transform:uppercase;color:#A8A093;margin-top:8px">Rubén · Esencia Angelopolitana</small></p>
-    ${pie("Dudas o pedidos","","¿Te gustó tu experiencia?","Escanea y déjanos tu opinión en Google")}
+    ${pieSimple("Dudas o pedidos","Te avisamos en cuanto tu perfume esté listo para entregártelo.")}
   </div></div>`;
 }
 function tarjetaEntrega(x){
@@ -182,6 +194,44 @@ function tarjetaEntrega(x){
     ${pie("Guarda nuestro WhatsApp","Nos vemos en tu próxima esencia.","¿Cómo te fue?","Tu opinión en Google nos ayuda a crecer. Escanea aquí.")}
   </div></div>`;
 }
+function pieSimple(k,s){
+  return `<div class="c-bottom" style="width:100%;text-align:left"><div class="c-wa">${k}<b>222 491 8377</b></div>
+    <div style="max-width:440px;text-align:right;font-size:21px;line-height:1.4;color:#A8A093">${s}</div></div>`;
+}
+function tarjetaCamino(x){
+  const lotesOk=LOTES.filter(l=>l.lote).slice(0,3);
+  const paso=(t,est)=>{const on=est!=="pend";const act=est==="act";
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:14px;width:170px;text-align:center"><span style="height:58px;display:flex;align-items:center">
+      <span style="width:${act?58:46}px;height:${act?58:46}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${act?26:22}px;font-weight:800;${act?"background:#C9A96E;color:#1A1408;border:6px solid rgba(201,169,110,.25)":on?"background:#2A241A;color:#C9A96E;border:2px solid #C9A96E":"background:transparent;color:#5A5348;border:2px solid #3A352C"}">${est==="hecho"?"✓":act?"●":""}</span></span>
+      <span style="font-size:20px;font-weight:${act?700:600};color:${act?"#F4EFE6":on?"#C9C2B6":"#6E675C"};line-height:1.25">${t}</span></div>`};
+  const linea=on=>`<span style="flex:1;height:2px;margin-top:28px;background:${on?"#C9A96E":"#3A352C"}"></span>`;
+  return `<div class="card" id="card"><div class="glow" style="${glowEnt}"></div>
+  <div class="in" style="padding:62px 84px 56px">
+    <div class="c-brand">${LOGO}<div><b>ESENCIA ANGELOPOLITANA</b><small>Perfumes originales · Puebla</small></div></div>
+    <div class="c-k" style="margin-top:58px">Tu pedido llegó</div>
+    <h1 class="c-h fit" data-max="912" style="font-size:96px;margin-top:14px">${x.primero?esc(x.primero)+", ya":"Ya"} va en camino</h1>
+    <h1 class="c-h" style="font-size:96px"><i>tu esencia</i></h1>
+    <p class="c-msg" style="margin-top:26px;max-width:880px">Recibimos ${x.perfume?(plural(x.perfume)?`<b>${esc(x.perfume)}</b>`:`tu <b>${esc(x.perfume)}</b>`):"tu perfume"} ${x.perfume&&plural(x.perfume)?"sellados":"sellado"} de fábrica. ${x.perfume&&plural(x.perfume)?"Los revisamos, los envolvimos":"Lo revisamos, lo envolvimos"} para ti y te ${x.perfume&&plural(x.perfume)?"los":"lo"} llevamos hasta tu domicilio.</p>
+    <div style="margin-top:48px;border:2px solid #C9A96E;border-radius:28px;padding:34px 40px;display:flex;justify-content:space-between;align-items:center;gap:30px;background:rgba(201,169,110,.08)">
+      <div><div class="c-k" style="font-size:17px">Entrega a domicilio</div>
+        <div style="font-family:'PlayfairEA',serif;font-weight:600;font-size:50px;line-height:1.05;margin-top:10px;white-space:nowrap" class="fit" data-max="560">${esc(cap(x.dia||"Hoy"))}</div></div>
+      <div style="text-align:right"><div class="c-k" style="font-size:17px;color:#A8A093">Horario</div>
+        <div style="font-size:40px;font-weight:700;margin-top:10px;white-space:nowrap">${esc(x.horario||"Por confirmar")}</div></div>
+    </div>
+    <div style="margin-top:${lotesOk.length?48:72}px;display:flex;align-items:flex-start;justify-content:center">
+      ${paso("Pago recibido","hecho")}${linea(true)}${paso("Pedido listo","hecho")}${linea(true)}${paso("En camino","act")}${linea(false)}${paso("Entregado","pend")}
+    </div>
+    ${lotesOk.length?`<div style="margin-top:44px;border:1px solid #4A4234;border-radius:24px;padding:24px 32px;background:rgba(201,169,110,.05)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:20px"><span class="c-k" style="font-size:17px">Garantía de originalidad</span><span style="font-size:17px;color:#A8A093">Revisa el lote en tu caja</span></div>
+      ${lotesOk.map(l=>`<div style="display:grid;grid-template-columns:minmax(0,1fr) 170px 240px;gap:20px;align-items:baseline;border-top:1px solid #2C2A26;margin-top:14px;padding-top:14px">
+        <span style="font-size:22px;font-weight:600;color:#F4EFE6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.perfume||"Tu perfume")}</span>
+        <span style="font-size:21px;color:#C9C2B6;white-space:nowrap">Lote <b style="color:#E6D3AA;letter-spacing:.06em">${esc(l.lote)}</b></span>
+        <span style="font-size:21px;color:#C9C2B6;white-space:nowrap;text-align:right">${l.fab?`Fabricado <b style="color:#E6D3AA">${esc(l.fab)}</b>`:""}</span></div>`).join("")}
+      <div style="font-size:16px;color:#8F877A;margin-top:14px">Fecha de fabricación consultada con el número de lote en CheckFresh.com</div></div>`
+    :`<p style="margin-top:64px;font-size:24px;line-height:1.45;color:#C9C2B6;text-align:center;border:1px solid #3A352C;border-radius:999px;padding:18px 28px;background:rgba(201,169,110,.05)">Al recibirlo, revisa que venga <b style="color:#F4EFE6">sellado y con su número de lote</b>.</p>`}
+    ${pieSimple("¿Cambio de horario?","Escríbenos y lo ajustamos. Te avisamos al salir a entregarlo.")}
+  </div></div>`;
+}
 function pie(k,frase,t,s){
   return `<div class="c-bottom" style="width:100%;text-align:left"><div class="c-wa">${k}<b>222 491 8377</b>${frase?`<i>${frase}</i>`:""}</div>
     <div class="c-rev"><div class="t"><span class="c-stars">★★★★★</span><b>${t}</b>${s}</div><div class="c-qr">${QR}</div></div></div>`;
@@ -194,20 +244,24 @@ function ajustar(){ // achica nombres largos para que quepan en una línea
 }
 function mensaje(x){
   const n=x.primero?`, ${x.primero}`:"";
+  if(tipo==="camino") return `¡${x.primero||"Hola"}, tu pedido ya llegó! 🖤 ${x.perfume?(plural(x.perfume)?cap(x.perfume)+" ya están listos":"Tu "+x.perfume+" ya está listo"):"Tu perfume ya está listo"}, sellado y envuelto para ti.\n\n📦 Te lo llevamos ${x.dia?"el "+x.dia:"hoy"}${x.horario?", de "+x.horario:""}.\n\n${LOTES.some(l=>l.lote)?"🔎 Garantía de originalidad:\n"+LOTES.filter(l=>l.lote).map(l=>`• ${l.perfume||"Tu perfume"}: lote ${l.lote}${l.fab?`, fabricado ${l.fab}`:""}`).join("\n")+"\nPuedes consultarlo tú mismo en checkfresh.com\n\n":""}Si necesitas cambiar el horario o la dirección, respóndenos por aquí.`;
   return tipo==="pago"
-    ? `¡Gracias por tu compra${n}! 🖤 Ya recibimos tu pago${x.perfume?(plural(x.perfume)?` de ${x.perfume}`:` de tu ${x.perfume}`):""} y ${plural(x.perfume)?"los":"lo"} estamos preparando. Te confirmamos por aquí el día y horario de entrega.\n\nSi te gustó tu experiencia, nos ayudaría muchísimo tu opinión en Google ⭐\n${REVIEW}`
+    ? `¡Gracias por tu compra${n}! 🖤 Ya recibimos tu pago${x.perfume?(plural(x.perfume)?` de ${x.perfume}`:` de tu ${x.perfume}`):""} y ${plural(x.perfume)?"los":"lo"} estamos preparando. Te avisamos por aquí en cuanto esté listo para entregártelo.`
     : `¡${x.primero||"Hola"}, ${x.perfume?(plural(x.perfume)?x.perfume.replace(/^tus /,"tus ")+" ya están contigo":"tu "+x.perfume+" ya está contigo"):"tu perfume ya está contigo"}! 🖤 Gracias por confiar en Esencia Angelopolitana. Guarda este número: cuando se te ${plural(x.perfume)?"estén":"esté"} acabando o quieras regalar algo original, aquí estamos.\n\nSi te gustó la experiencia, tu opinión nos ayuda muchísimo ⭐\n${REVIEW}`;
 }
 function escala(){ $("#scaler").style.transform=`scale(${$("#frame").clientWidth/1080})` }
 let ejemplo=true;
 function pintar(){
-  const x=datos(); $("#scaler").innerHTML=tipo==="pago"?tarjetaPago(x):tarjetaEntrega(x);
+  const x=datos(); $("#scaler").innerHTML=tipo==="pago"?tarjetaPago(x):tipo==="camino"?tarjetaCamino(x):tarjetaEntrega(x);
+  $("#horarioBox").hidden=$("#lotesBox").hidden=tipo!=="camino"; $("#fechaLbl").textContent=tipo==="camino"?"Fecha de entrega":tipo==="entrega"?"Fecha en que se entregó":"Fecha del pago";
   ajustar(); escala(); $("#texto").textContent=mensaje(x);
   $("#ejemplo").hidden=!ejemplo; $("#out").hidden=$("#outHint").hidden=true;
 }
-["#nombre","#perfume","#fecha"].forEach(s=>$(s).addEventListener("input",()=>{ejemplo=false;pintar()}));
+["#nombre","#perfume","#fecha","#horario"].forEach(s=>$(s).addEventListener("input",()=>{ejemplo=false;pintar()}));
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{tipo=b.dataset.t;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));pintar()});
 window.addEventListener("resize",escala);
+$("#lotes").addEventListener("input",e=>{const t=e.target; if(!t.dataset.k) return; LOTES[+t.dataset.i][t.dataset.k]=t.value.trim(); ejemplo=false; pintar()});
+pintaLotes();
 $("#nombre").addEventListener("focus",e=>{ if(ejemplo){ e.target.select() } });
 
 async function render(){
@@ -219,7 +273,7 @@ async function render(){
 }
 async function imagen(){
   const c=await render(); const x=datos();
-  const nombre=`Tarjeta-${tipo==="pago"?"pago":"entrega"}-${PED?PED.id+"-":""}${(x.primero||"cliente").normalize("NFD").replace(/[^\w]+/g,"")}.png`;
+  const nombre=`Tarjeta-${tipo}-${PED?PED.id+"-":""}${(x.primero||"cliente").normalize("NFD").replace(/[^\w]+/g,"")}.png`;
   const blob=await new Promise(r=>c.toBlob(r,"image/png"));
   $("#out").src=URL.createObjectURL(blob); $("#out").hidden=false;
   return {blob,nombre};
@@ -259,6 +313,7 @@ async function buscar(){
       return;
     }
     PED=d; ejemplo=false;
+    LOTES=d.items.length?d.items.map(i=>({perfume:i.perfume,lote:i.lote||"",fab:i.fabricacion||""})):[{perfume:"",lote:"",fab:""}]; pintaLotes();
     $("#nombre").value=d.cliente; $("#perfume").value=listaPerfumes(d.items);
     const ent=/entregado/i.test(d.estatus);
     tipo=ent?"entrega":"pago"; document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.t===tipo));
