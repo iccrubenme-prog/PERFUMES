@@ -218,18 +218,18 @@ function tarjetaDatos(x){
   return `<div class="card" id="card"><div class="glow" style="background:radial-gradient(700px 520px at 85% 8%,rgba(201,169,110,.20),transparent 70%),radial-gradient(600px 500px at 0% 100%,rgba(201,169,110,.10),transparent 70%)"></div>
   <div class="in" style="padding:60px 84px 56px">
     <div class="c-brand">${LOGO}<div><b>ESENCIA ANGELOPOLITANA</b><small>Perfumes originales · Puebla</small></div></div>
-    <h1 class="c-h" style="font-size:78px;margin-top:40px">Paga por <i>transferencia</i></h1>
+    <h1 class="c-h" style="font-size:78px;margin-top:${x.monto||x.concepto?34:44}px">Paga por <i>transferencia</i></h1>
     <p class="c-msg" style="margin-top:14px;font-size:27px">${x.primero?esc(x.primero)+", aquí":"Aquí"} tienes los datos para completar tu pedido.</p>
     ${x.monto||x.concepto?`<div style="margin-top:26px;display:flex;gap:16px">
       ${x.monto?`<div style="flex:1;border:2px solid #C9A96E;border-radius:22px;padding:16px 26px;background:rgba(201,169,110,.08)"><div class="c-k" style="font-size:16px">Total a pagar</div><div style="font-size:46px;font-weight:700;margin-top:4px">${fmt(x.monto)}</div></div>`:""}
       ${x.concepto?`<div style="flex:1;border:1px solid #4A4234;border-radius:22px;padding:16px 26px"><div class="c-k" style="font-size:16px;color:#A8A093">Concepto</div><div style="font-size:46px;font-weight:700;margin-top:4px;letter-spacing:.03em">${esc(x.concepto)}</div></div>`:""}
     </div>`:""}
-    <div class="c-gold" style="margin-top:${x.monto||x.concepto?26:40}px;height:${x.monto||x.concepto?380:430}px;border-radius:32px;padding:38px 48px;display:flex;flex-direction:column">
+    <div class="c-gold" style="margin-top:${x.monto||x.concepto?26:40}px;height:${x.monto||x.concepto?374:430}px;border-radius:32px;padding:38px 48px;display:flex;flex-direction:column">
       <span class="arc"></span>
       <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start">
         <div><div style="font-size:42px;font-weight:800">Banamex</div><div style="font-size:19px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;opacity:.75;margin-top:4px">Tarjeta de débito</div></div>
         <span style="font-size:19px;font-weight:700;letter-spacing:.14em;border:2px solid rgba(26,20,8,.55);border-radius:999px;padding:7px 18px">SPEI</span></div>
-      <span style="position:relative;width:84px;height:62px;border-radius:13px;margin-top:${x.monto||x.concepto?16:28}px;background:linear-gradient(135deg,#F5E7C6,#B8955A);border:2px solid rgba(26,20,8,.25)"></span>
+      <span style="position:relative;flex:none;width:84px;height:62px;border-radius:13px;margin-top:${x.monto||x.concepto?14:28}px;background:linear-gradient(135deg,#F5E7C6,#B8955A);border:2px solid rgba(26,20,8,.25)"></span>
       <div style="position:relative;font-size:18px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;opacity:.7;margin-top:auto">Número de tarjeta</div>
       <div style="position:relative;font-size:60px;font-weight:700;letter-spacing:.05em;margin-top:4px;white-space:nowrap">5256 7824 8456 9895</div>
       <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px">
@@ -239,9 +239,14 @@ function tarjetaDatos(x){
     <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;border:1px solid #3A352C;border-radius:24px;padding:20px 32px;background:rgba(201,169,110,.06)">
       <div><div style="font-size:17px;letter-spacing:.22em;text-transform:uppercase;color:#A8A093">CLABE interbancaria · Banamex</div><div style="font-size:42px;font-weight:700;letter-spacing:.04em;margin-top:4px;white-space:nowrap">002 650 9037 3541 2214</div></div>
       <div style="font-size:19px;color:#C9A96E;text-align:right;line-height:1.35">Desde cualquier<br>banco</div></div>
-    <p style="margin-top:22px;font-size:23px;line-height:1.45;color:#C9C2B6">${x.concepto?`En el concepto escribe <b style="color:#F4EFE6">${esc(x.concepto)}</b> y`:"Al terminar,"} mándanos el <b style="color:#F4EFE6">comprobante por WhatsApp</b> para confirmar tu pedido.</p>
+    <div style="margin-top:${x.monto||x.concepto?22:30}px;display:flex;flex-direction:column;gap:${x.monto||x.concepto?12:18}px">
+      ${[`Transfiere a la <b style="color:#F4EFE6">tarjeta</b> o a la <b style="color:#F4EFE6">CLABE</b>, la que acepte tu banco.`,
+         x.concepto?`En el concepto escribe <b style="color:#F4EFE6">${esc(x.concepto)}</b>.`:`En el concepto escribe tu <b style="color:#F4EFE6">número de pedido</b>.`,
+         `Mándanos el <b style="color:#F4EFE6">comprobante por WhatsApp</b> y confirmamos tu entrega.`]
+        .map((t,i)=>`<div style="display:flex;align-items:center;gap:22px"><span style="width:50px;height:50px;flex:none;border-radius:50%;border:2px solid #C9A96E;color:#C9A96E;display:flex;align-items:center;justify-content:center;font-family:'PlayfairEA',serif;font-size:24px">${i+1}</span><span style="font-size:25px;line-height:1.35;color:#C9C2B6">${t}</span></div>`).join("")}
+    </div>
     <div class="c-bottom" style="width:100%;text-align:left"><div class="c-wa">WhatsApp<b>222 491 8377</b></div>
-      <div style="max-width:440px;text-align:right;font-size:20px;line-height:1.4;color:#A8A093">Solo recibimos pagos en <b style="color:#C9A96E">esta cuenta</b>. Si te dan otro número, confírmalo con nosotros.</div></div>
+      <div style="max-width:440px;text-align:right;font-size:20px;line-height:1.4;color:#A8A093">Solo recibimos pagos en <b style="color:#C9A96E">esta cuenta</b>. Si te dan otro número, confírmalo con nosotros antes de pagar.</div></div>
   </div></div>`;
 }
 function tarjetaCamino(x){
