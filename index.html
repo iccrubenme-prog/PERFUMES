@@ -94,7 +94,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
     <div class="field"><span class="lbl">Momento</span>
       <div class="seg" role="group" aria-label="Tipo de tarjeta">
         <button type="button" id="tPago" data-t="pago" aria-pressed="true">Pago recibido</button>
-        <button type="button" id="tCamino" data-t="camino" aria-pressed="false">Va en camino</button>
+        <button type="button" id="tCamino" data-t="camino" aria-pressed="false">Listo para entrega</button>
         <button type="button" id="tEntrega" data-t="entrega" aria-pressed="false">Entregado</button>
       </div></div>
     <div class="field"><label class="lbl" for="nombre">Nombre del cliente</label><input id="nombre" maxlength="40" value="Ana Lucía" placeholder="Se llena con el pedido"></div>
@@ -109,6 +109,16 @@ header p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
     <p class="hint" id="bajarHint">La imagen sale en 1080 × 1350, el tamaño ideal para WhatsApp.</p>
     <div class="field"><span class="lbl">Mensaje para acompañarla</span><p class="msg" id="texto"></p></div>
     <button type="button" class="btn ghost" id="copiar">Copiar mensaje</button>
+    <div class="sep"></div>
+    <div class="field"><span class="lbl">Mensajes del día de la entrega</span>
+      <p class="hint" style="margin:0">Sin tarjeta: solo texto y tu ubicación en tiempo real.</p>
+      <div class="row2" style="grid-template-columns:auto minmax(0,1fr);align-items:center"><label for="minutos" style="font-size:.86rem;color:var(--muted)">Llegamos en</label>
+        <div style="display:flex;align-items:center;gap:8px"><input id="minutos" type="number" min="5" max="180" step="5" value="25" style="width:90px"><span style="font-size:.86rem;color:var(--muted)">minutos</span></div></div></div>
+    <div class="field"><span class="lbl">1 · Al salir</span><p class="msg" id="msgSalida"></p>
+      <div class="row2" style="grid-template-columns:1fr 1fr"><button type="button" class="btn ghost" data-copia="msgSalida">Copiar</button><button type="button" class="btn wa" data-wa="msgSalida">Abrir WhatsApp</button></div>
+      <p class="hint" style="margin:0">Después de enviarlo, en el chat: 📎 → Ubicación → <b>Compartir ubicación en tiempo real</b> → 1 hora.</p></div>
+    <div class="field"><span class="lbl">2 · Al estar cerca</span><p class="msg" id="msgCerca"></p>
+      <div class="row2" style="grid-template-columns:1fr 1fr"><button type="button" class="btn ghost" data-copia="msgCerca">Copiar</button><button type="button" class="btn wa" data-wa="msgCerca">Abrir WhatsApp</button></div></div>
   </form>
 
   <div class="prev">
@@ -208,8 +218,8 @@ function tarjetaCamino(x){
   return `<div class="card" id="card"><div class="glow" style="${glowEnt}"></div>
   <div class="in" style="padding:62px 84px 56px">
     <div class="c-brand">${LOGO}<div><b>ESENCIA ANGELOPOLITANA</b><small>Perfumes originales · Puebla</small></div></div>
-    <div class="c-k" style="margin-top:58px">Tu pedido llegó</div>
-    <h1 class="c-h fit" data-max="912" style="font-size:96px;margin-top:14px">${x.primero?esc(x.primero)+", ya":"Ya"} va en camino</h1>
+    <div class="c-k" style="margin-top:58px">Listo para entregártelo</div>
+    <h1 class="c-h fit" data-max="912" style="font-size:96px;margin-top:14px">${x.primero?esc(x.primero)+", ya":"Ya"} llegó</h1>
     <h1 class="c-h" style="font-size:96px"><i>tu esencia</i></h1>
     <p class="c-msg" style="margin-top:26px;max-width:880px">Recibimos ${x.perfume?(plural(x.perfume)?`<b>${esc(x.perfume)}</b>`:`tu <b>${esc(x.perfume)}</b>`):"tu perfume"} ${x.perfume&&plural(x.perfume)?"sellados":"sellado"} de fábrica. ${x.perfume&&plural(x.perfume)?"Los revisamos, los envolvimos":"Lo revisamos, lo envolvimos"} para ti y te ${x.perfume&&plural(x.perfume)?"los":"lo"} llevamos hasta tu domicilio.</p>
     <div style="margin-top:48px;border:2px solid #C9A96E;border-radius:28px;padding:34px 40px;display:flex;justify-content:space-between;align-items:center;gap:30px;background:rgba(201,169,110,.08)">
@@ -219,7 +229,7 @@ function tarjetaCamino(x){
         <div style="font-size:40px;font-weight:700;margin-top:10px;white-space:nowrap">${esc(x.horario||"Por confirmar")}</div></div>
     </div>
     <div style="margin-top:${lotesOk.length?48:72}px;display:flex;align-items:flex-start;justify-content:center">
-      ${paso("Pago recibido","hecho")}${linea(true)}${paso("Pedido listo","hecho")}${linea(true)}${paso("En camino","act")}${linea(false)}${paso("Entregado","pend")}
+      ${paso("Pago recibido","hecho")}${linea(true)}${paso("Pedido recibido","hecho")}${linea(true)}${paso("Listo para entrega","act")}${linea(false)}${paso("Entregado","pend")}
     </div>
     ${lotesOk.length?`<div style="margin-top:44px;border:1px solid #4A4234;border-radius:24px;padding:24px 32px;background:rgba(201,169,110,.05)">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:20px"><span class="c-k" style="font-size:17px">Garantía de originalidad</span><span style="font-size:17px;color:#A8A093">Revisa el lote en tu caja</span></div>
@@ -229,7 +239,7 @@ function tarjetaCamino(x){
         <span style="font-size:21px;color:#C9C2B6;white-space:nowrap;text-align:right">${l.fab?`Fabricado <b style="color:#E6D3AA">${esc(l.fab)}</b>`:""}</span></div>`).join("")}
       <div style="font-size:16px;color:#8F877A;margin-top:14px">Fecha de fabricación consultada con el número de lote en CheckFresh.com</div></div>`
     :`<p style="margin-top:64px;font-size:24px;line-height:1.45;color:#C9C2B6;text-align:center;border:1px solid #3A352C;border-radius:999px;padding:18px 28px;background:rgba(201,169,110,.05)">Al recibirlo, revisa que venga <b style="color:#F4EFE6">sellado y con su número de lote</b>.</p>`}
-    ${pieSimple("¿Cambio de horario?","Escríbenos y lo ajustamos. Te avisamos al salir a entregarlo.")}
+    ${pieSimple("¿Cambio de horario?","Escríbenos y lo ajustamos. Te avisamos cuando salgamos a entregarlo.")}
   </div></div>`;
 }
 function pie(k,frase,t,s){
@@ -253,7 +263,8 @@ function escala(){ $("#scaler").style.transform=`scale(${$("#frame").clientWidth
 let ejemplo=true;
 function pintar(){
   const x=datos(); $("#scaler").innerHTML=tipo==="pago"?tarjetaPago(x):tipo==="camino"?tarjetaCamino(x):tarjetaEntrega(x);
-  $("#horarioBox").hidden=$("#lotesBox").hidden=tipo!=="camino"; $("#fechaLbl").textContent=tipo==="camino"?"Fecha de entrega":tipo==="entrega"?"Fecha en que se entregó":"Fecha del pago";
+  $("#horarioBox").hidden=$("#lotesBox").hidden=tipo!=="camino";
+  pintaRapidos(x); $("#fechaLbl").textContent=tipo==="camino"?"Fecha de entrega":tipo==="entrega"?"Fecha en que se entregó":"Fecha del pago";
   ajustar(); escala(); $("#texto").textContent=mensaje(x);
   $("#ejemplo").hidden=!ejemplo; $("#out").hidden=$("#outHint").hidden=true;
 }
@@ -327,6 +338,22 @@ async function buscar(){
 }
 $("#f").addEventListener("submit",e=>{e.preventDefault();buscar()});
 const q0=new URLSearchParams(location.search).get("pedido"); if(q0){ $("#pedido").value=q0; setTimeout(buscar,50) }
+/* ---------- mensajes rápidos del día de entrega ---------- */
+function pintaRapidos(x){
+  const n=x.primero?`, ${x.primero}`:"";
+  const que=x.perfume?(plural(x.perfume)?"tus perfumes":"tu "+x.perfume):"tu perfume";
+  const min=Math.max(5,Math.round(+$("#minutos").value||25));
+  $("#msgSalida").textContent=`¡Hola${n}! 🖤 Ya vamos en camino con ${que}.\n\nTe comparto nuestra ubicación en tiempo real para que veas cuándo llegamos. Tiempo estimado: ${min} minutos.`;
+  $("#msgCerca").textContent=`¡Estamos a 5 minutos${n}! 🙌 ¿Nos esperas en la entrada? Al recibirlo revisamos juntos que venga sellado y con su número de lote.`;
+}
+$("#minutos").addEventListener("input",()=>pintaRapidos(datos()));
+document.querySelectorAll("[data-copia]").forEach(b=>b.onclick=async()=>{ const el=$("#"+b.dataset.copia); const t0=b.textContent;
+  try{ await navigator.clipboard.writeText(el.textContent); b.textContent="Copiado" }
+  catch(e){ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent="Selecciona y copia" }
+  setTimeout(()=>b.textContent=t0,2000) });
+function telCliente(){ return typeof PED!=="undefined"&&PED&&PED.telefono?(PED.telefono.length===10?"52"+PED.telefono:PED.telefono):""; }
+document.querySelectorAll("[data-wa]").forEach(b=>{ b.onclick=null; b.addEventListener("click",()=>{
+  const a=document.createElement("a"); a.href=`https://wa.me/${telCliente()}?text=${encodeURIComponent($("#"+b.dataset.wa).textContent)}`; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); }) });
 $("#copiar").onclick=async()=>{ const t=$("#texto").textContent;
   try{ await navigator.clipboard.writeText(t); $("#copiar").textContent="Mensaje copiado" }
   catch(e){ const r=document.createRange(); r.selectNodeContents($("#texto")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copiar").textContent="Selecciona y copia el texto" }
